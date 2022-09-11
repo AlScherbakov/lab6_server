@@ -23,8 +23,7 @@ public class RemoveByIdCommand extends Command {
 //        collection.removeIf(g -> Objects.equals(g.getId(), id));
 //        return collection;
 //    }
-    @Override
-    public String describe() {
+    public static String describe() {
         return "remove_by_id (int)id : удалить элемент из коллекции по его id";
     }
 }

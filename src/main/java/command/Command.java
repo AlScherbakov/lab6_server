@@ -8,7 +8,6 @@ import java.io.Serializable;
 
 public abstract class Command implements Serializable {
     protected CommandEnum name;
-    public abstract String describe();
     public CommandEnum getName(){
         return name;
     }

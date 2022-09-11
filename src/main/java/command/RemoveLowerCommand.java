@@ -30,8 +30,7 @@ public class RemoveLowerCommand extends Command{
 //        collection.removeAll(groupsToRemove);
 //        return collection;
 //    }
-    @Override
-    public String describe() {
+    public static String describe() {
         return "remove_lower {element} : удалить из коллекции все элементы, меньшие, чем заданный";
     }
 }

@@ -34,8 +34,7 @@ public class UpdateElementCommand extends Command{
 //        collection.add(updatedGroup);
 //        return collection;
 //    }
-    @Override
-    public String describe(){
+    public static String describe(){
         return "update (int)id {element} : обновить значение элемента коллекции, id которого равен заданному";
     }
 }

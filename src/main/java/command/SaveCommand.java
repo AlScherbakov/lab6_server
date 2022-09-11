@@ -32,8 +32,7 @@ public class SaveCommand extends Command{
 //        return new File(outputFilepath).exists();
 //    }
 
-    @Override
-    public String describe() {
+    public static String describe() {
         return "save : сохранить коллекцию в файл";
     }
 }

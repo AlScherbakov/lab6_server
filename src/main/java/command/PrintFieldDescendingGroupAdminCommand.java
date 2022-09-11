@@ -28,8 +28,7 @@ public class PrintFieldDescendingGroupAdminCommand extends Command{
 //        return String.join("\n", admins);
 //    }
 
-    @Override
-    public String describe() {
+    public static String describe() {
         return "print_field_descending_group_admin : вывести значения поля groupAdmin всех элементов в порядке убывания";
     }
 }

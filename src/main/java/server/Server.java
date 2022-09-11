@@ -3,7 +3,6 @@ package server;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import command.CommandEnum;
-import command.Invoker;
 import command.Receiver;
 import util.DataInputSource;
 import util.StudyGroup;
@@ -12,10 +11,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
+import java.net.*;
+import java.nio.channels.DatagramChannel;
+import java.nio.channels.SocketChannel;
 import java.nio.file.AccessDeniedException;
 import java.util.*;
 
@@ -23,16 +21,25 @@ import java.util.*;
  * Server class from Command pattern. Main process host. May be used for creation of several application instances
  */
 public class Server {
+    private final int PORT = 3333;
     private final Scanner scan;
-    private ServerSender sender;
+    public ServerSender sender;
+    private DatagramChannel datagramChannel;
     private DatagramSocket datagramSocket;
-    private InetAddress clientAddress;
+    private InetSocketAddress clientAddress;
+
     public Server(Scanner scan){
         this.scan = scan;
         try {
-            datagramSocket = new DatagramSocket(3333);
-            clientAddress = InetAddress.getByName("localhost");
-        } catch (SocketException | UnknownHostException e) {
+            datagramSocket = new DatagramSocket(PORT);
+//            datagramChannel = DatagramChannel.open();
+//            datagramChannel.configureBlocking(false);
+            clientAddress = new InetSocketAddress("localhost", PORT);
+//            datagramSocket.connect(clientAddress);
+//            datagramChannel.connect(clientAddress);
+//            sender = new ServerSender(datagramChannel, clientAddress, PORT);
+            sender = new ServerSender(datagramSocket, clientAddress, PORT);
+        } catch ( IOException e) {
             System.err.println(e.getMessage());
         }
     };
@@ -76,8 +83,8 @@ public class Server {
             System.exit(1);
         }
         System.out.println("----\nСтарт работы.\n----");
-        sender = new ServerSender(datagramSocket,clientAddress);
-        sender.start();
+        this.sender.start();
+//        ServerReceiver receiver = new ServerReceiver(datagramChannel,this);
         ServerReceiver receiver = new ServerReceiver(datagramSocket,this);
         receiver.setDaemon(true);
         receiver.start();

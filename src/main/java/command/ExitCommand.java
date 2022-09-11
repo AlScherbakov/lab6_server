@@ -14,8 +14,7 @@ public class ExitCommand extends Command{
 //        System.exit(0);
 //        return 0;
 //    }
-    @Override
-    public String describe(){
+    public static String describe(){
         return "exit : завершить программу (без сохранения в файл)";
     }
 }

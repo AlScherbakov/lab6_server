@@ -23,8 +23,7 @@ public class HistoryCommand extends Command{
 //           return new ArrayList<>(history.subList(historySize - 6, historySize));
 //        }
 //    }
-    @Override
-    public String describe(){
+    public static String describe(){
         return "history : вывести последние 6 команд (без их аргументов)";
     }
 }

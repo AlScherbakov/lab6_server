@@ -19,8 +19,7 @@ public class AddElementCommand extends Command{
 //    public StudyGroup execute(){
 //        return new DataCollector(source).requestStudyGroup();
 //    }
-    @Override
-    public String describe(){
+    public static String describe(){
         return "add {element} : добавить новый элемент в коллекцию";
     }
 }

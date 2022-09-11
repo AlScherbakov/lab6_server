@@ -30,8 +30,7 @@ public class RemoveGreaterCommand extends Command{
 //        collection.removeAll(groupsToRemove);
 //        return collection;
 //    }
-    @Override
-    public String describe() {
+    public static String describe() {
         return "remove_greater {element} : удалить из коллекции все элементы, превышающие заданный";
     }
 }

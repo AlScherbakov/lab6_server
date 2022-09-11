@@ -21,8 +21,7 @@ public class ClearCommand extends Command{
 //        return new TreeSet<>();
 //    }
 
-    @Override
-    public String describe() {
+    public static String describe() {
         return "clear : очистить коллекцию";
     }
 }

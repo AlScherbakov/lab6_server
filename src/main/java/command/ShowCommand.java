@@ -29,8 +29,7 @@ public class ShowCommand extends Command {
 //        }
 //        return  "show command call";
 //    }
-    @Override
-    public String describe(){
+    public static String describe(){
         return "show : вывести в стандартный поток вывода все элементы коллекции в строковом представлении";
     }
 }

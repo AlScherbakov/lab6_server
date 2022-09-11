@@ -32,8 +32,7 @@ public class FilterLessThanSemesterEnumCommand extends Command{
 //            return collection;
 //        }
 //    }
-    @Override
-    public String describe() {
+    public static String describe() {
         return "filter_less_than_semester_enum (SECOND, THIRD, SIXTH, SEVENTH) : вывести элементы, значение поля semesterEnum которых меньше заданного";
     }
 }

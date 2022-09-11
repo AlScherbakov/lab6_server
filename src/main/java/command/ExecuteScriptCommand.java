@@ -24,8 +24,7 @@ public class ExecuteScriptCommand extends Command{
 //            return null;
 //        }
 //    }
-    @Override
-    public String describe() {
+    public static String describe() {
         return "execute_script file_name : считать и исполнить скрипт из указанного файла. В скрипте содержатся команды в таком же виде, в котором их вводит пользователь в интерактивном режиме";
     }
 }

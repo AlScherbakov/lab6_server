@@ -23,8 +23,7 @@ public class MaxGroupByAdminCommand extends Command{
 //        g.addAll(collection);
 //        return g.last();
 //    }
-    @Override
-    public String describe(){
+    public static String describe(){
         return "max_by_group_admin : вывести любой объект из коллекции, значение поля groupAdmin которого является максимальным";
     }
 }
