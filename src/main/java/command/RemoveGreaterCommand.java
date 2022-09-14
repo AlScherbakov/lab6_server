@@ -14,22 +14,19 @@ import java.util.TreeSet;
 public class RemoveGreaterCommand extends Command{
     private static final long serialVersionUID = 12L;
     TreeSet<StudyGroup> collection;
-    DataInputSource source;
+    StudyGroup group;
 
-    public RemoveGreaterCommand(TreeSet<StudyGroup> c, DataInputSource s){
-        collection = c;
-        source = s;
+    public RemoveGreaterCommand(TreeSet<StudyGroup> collection, StudyGroup group){
+        this.collection = collection;
+        this.group = group;
         this.name = CommandEnum.REMOVE_GREATER;
     }
 
-//    @Override
-//    public Set<StudyGroup> execute(){
-//        System.out.println("Введите новый элемент для сравнения:");
-//        StudyGroup aGroup = new DataCollector(source).requestStudyGroup();
-//        Set<StudyGroup> groupsToRemove = collection.tailSet(aGroup);
-//        collection.removeAll(groupsToRemove);
-//        return collection;
-//    }
+    public Set<StudyGroup> execute(){
+        Set<StudyGroup> groupsToRemove = collection.tailSet(group);
+        collection.removeAll(groupsToRemove);
+        return collection;
+    }
     public static String describe() {
         return "remove_greater {element} : удалить из коллекции все элементы, превышающие заданный";
     }

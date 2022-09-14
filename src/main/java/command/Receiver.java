@@ -73,6 +73,9 @@ public class Receiver {
     public void pushReader(BufferedReader r){
         readers.push(r);
     }
+    public void pushHistory(CommandEnum commandName){
+        history.add(commandName);
+    }
 
     public void removeFirstReader(){
         if (readers.size() > 0){

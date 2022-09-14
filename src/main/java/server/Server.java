@@ -12,8 +12,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.*;
-import java.nio.channels.DatagramChannel;
-import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
 import java.util.*;
 
@@ -21,36 +20,50 @@ import java.util.*;
  * Server class from Command pattern. Main process host. May be used for creation of several application instances
  */
 public class Server {
-    private final int PORT = 3333;
+    private int PORT = -1;
     private final Scanner scan;
     public ServerSender sender;
-    private DatagramChannel datagramChannel;
     private DatagramSocket datagramSocket;
     private InetSocketAddress clientAddress;
 
     public Server(Scanner scan){
         this.scan = scan;
-        try {
-            datagramSocket = new DatagramSocket(PORT);
-//            datagramChannel = DatagramChannel.open();
-//            datagramChannel.configureBlocking(false);
-            clientAddress = new InetSocketAddress("localhost", PORT);
-//            datagramSocket.connect(clientAddress);
-//            datagramChannel.connect(clientAddress);
-//            sender = new ServerSender(datagramChannel, clientAddress, PORT);
-            sender = new ServerSender(datagramSocket, clientAddress, PORT);
-        } catch ( IOException e) {
-            System.err.println(e.getMessage());
-        }
+        setPort();
+        System.out.println(PORT);
+        System.out.println(datagramSocket);
+        System.out.println(clientAddress);
     };
     boolean active = true;
-
-// buffered reader, custom tag
 
     /**
      * run method
      * @throws IOException
      */
+
+    public void setPort() {
+        System.out.println("----\nУкажите порт для приёма подключений\n----");
+        while (PORT == -1) {
+            try {
+                String numb = scan.nextLine();
+                if (numb.matches("[0-9]+")) {
+                    int portCandidate = Integer.parseInt(numb);
+                    if (portCandidate < 65535 && portCandidate >= 0) {
+                        PORT = portCandidate;
+                        datagramSocket = new DatagramSocket(PORT);
+                        clientAddress = new InetSocketAddress("localhost", PORT);
+                        sender = new ServerSender(datagramSocket, clientAddress, PORT);
+                    } else {
+                        System.out.println("----\nНедопустимый номер порта, введите снова\n----");
+                    }
+                } else {
+                    System.out.println("----\nНедопустимый номер порта, введите снова\n----");
+                }
+            } catch (SocketException e){
+                System.err.println("Неизвестный хост\n" + e.getMessage());
+            }
+        }
+    }
+
     public void run() throws IOException {
         String outputFilepath = System.getenv("lab5_data_filepath");
         Set<StudyGroup> groups = new TreeSet<>();
@@ -84,26 +97,15 @@ public class Server {
         }
         System.out.println("----\nСтарт работы.\n----");
         this.sender.start();
-//        ServerReceiver receiver = new ServerReceiver(datagramChannel,this);
-        ServerReceiver receiver = new ServerReceiver(datagramSocket,this);
+        List<CommandEnum> history = new ArrayList<>();
+        DataInputSource inputSource = new DataInputSource(scan);
+        Receiver programState = new Receiver(groups, outputFilepath, history, true, inputSource, collectionInitializationDate);
+        ServerReceiver receiver = new ServerReceiver(datagramSocket,this, programState);
         receiver.setDaemon(true);
         receiver.start();
         while (true){
 
         }
-//        List<CommandEnum> history = new ArrayList<>();
-//        System.out.println("Введите команду (help - помощь)");
-//        DataInputSource inputSource = new DataInputSource(scan);
-//        Receiver programState = new Receiver(groups, outputFilepath, history, true, inputSource, collectionInitializationDate);
-//            while (programState.getWorking() && active){
-//            String command = programState.getSource().get();
-//            if (command.isEmpty()) {
-//                programState.removeFirstReader();
-//                continue;
-//            };
-//            Invoker invoker = new Invoker(programState);
-//            programState = invoker.executeCommand(command);
-//        }
     }
 
     /**

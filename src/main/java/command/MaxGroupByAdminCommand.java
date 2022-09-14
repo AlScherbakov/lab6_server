@@ -17,12 +17,11 @@ public class MaxGroupByAdminCommand extends Command{
         collection = c;
         this.name = CommandEnum.MAX_BY_GROUP_ADMIN;
     }
-//    @Override
-//    public StudyGroup execute(){
-//        TreeSet<StudyGroup> g = new TreeSet<>(Comparator.comparing(StudyGroup::getAdmin));
-//        g.addAll(collection);
-//        return g.last();
-//    }
+    public StudyGroup execute(){
+        TreeSet<StudyGroup> g = new TreeSet<>(Comparator.comparing(StudyGroup::getAdmin));
+        g.addAll(collection);
+        return g.last();
+    }
     public static String describe(){
         return "max_by_group_admin : вывести любой объект из коллекции, значение поля groupAdmin которого является максимальным";
     }

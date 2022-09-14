@@ -14,15 +14,14 @@ public class HistoryCommand extends Command{
         history = h;
         this.name = CommandEnum.HISTORY;
     }
-//    @Override
-//    public List<CommandEnum> execute(){
-//        int historySize = history.size();
-//        if (historySize <= 6){
-//            return history;
-//        } else{
-//           return new ArrayList<>(history.subList(historySize - 6, historySize));
-//        }
-//    }
+    public List<CommandEnum> execute(){
+        int historySize = history.size();
+        if (historySize <= 6){
+            return history;
+        } else{
+           return new ArrayList<>(history.subList(historySize - 6, historySize));
+        }
+    }
     public static String describe(){
         return "history : вывести последние 6 команд (без их аргументов)";
     }

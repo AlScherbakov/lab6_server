@@ -19,14 +19,13 @@ public class PrintFieldDescendingGroupAdminCommand extends Command{
         this.name = CommandEnum.PRINT_FIELD_DESCENDING_GROUP_ADMIN;
     }
 
-//    @Override
-//    public String execute() {
-//        TreeSet<StudyGroup> g = new TreeSet<>((o1, o2) -> o2.getAdmin().compareTo(o1.getAdmin()));
-//        g.addAll(collection);
-//        ArrayList<String> admins = new ArrayList<>();
-//        g.forEach((StudyGroup e) -> admins.add(e.getAdmin().toString()));
-//        return String.join("\n", admins);
-//    }
+    public String execute() {
+        TreeSet<StudyGroup> g = new TreeSet<>((o1, o2) -> o2.getAdmin().compareTo(o1.getAdmin()));
+        g.addAll(collection);
+        ArrayList<String> admins = new ArrayList<>();
+        g.forEach((StudyGroup e) -> admins.add(e.getAdmin().toString()));
+        return String.join("\n", admins);
+    }
 
     public static String describe() {
         return "print_field_descending_group_admin : вывести значения поля groupAdmin всех элементов в порядке убывания";

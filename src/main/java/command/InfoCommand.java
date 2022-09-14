@@ -17,10 +17,9 @@ public class InfoCommand extends Command{
         creationDate = d;
         this.name = CommandEnum.INFO;
     }
-//    @Override
-//    public String execute(){
-//        return String.format("Тип коллекции - %s. Дата инициализации - %s. Количество элементов - %d\n", collection.getClass(), creationDate, collection.size());
-//    }
+    public String execute(){
+        return String.format("Тип коллекции - %s. Дата инициализации - %s. Количество элементов - %d\n", collection.getClass(), creationDate, collection.size());
+    }
     public static String describe() {
         return "info : вывести в стандартный поток вывода информацию о коллекции (тип, дата инициализации, количество элементов и т.д.)";
     }

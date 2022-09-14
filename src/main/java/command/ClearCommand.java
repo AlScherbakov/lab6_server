@@ -16,10 +16,9 @@ public class ClearCommand extends Command{
         this.name = CommandEnum.CLEAR;
     }
 
-//    @Override
-//    public Set<StudyGroup> execute (){
-//        return new TreeSet<>();
-//    }
+    public Set<StudyGroup> execute (){
+        return new TreeSet<>();
+    }
 
     public static String describe() {
         return "clear : очистить коллекцию";

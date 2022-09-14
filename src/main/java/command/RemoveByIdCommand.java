@@ -18,11 +18,10 @@ public class RemoveByIdCommand extends Command {
         collection = c;
         this.name = CommandEnum.REMOVE_BY_ID;
     }
-//    @Override
-//    public Set<StudyGroup> execute(){
-//        collection.removeIf(g -> Objects.equals(g.getId(), id));
-//        return collection;
-//    }
+    public Set<StudyGroup> execute(){
+        collection.removeIf(g -> Objects.equals(g.getId(), id));
+        return collection;
+    }
     public static String describe() {
         return "remove_by_id (int)id : удалить элемент из коллекции по его id";
     }

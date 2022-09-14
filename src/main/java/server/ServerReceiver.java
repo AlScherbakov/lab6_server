@@ -2,6 +2,7 @@ package server;
 
 import command.Command;
 import command.CommandEnum;
+import command.Receiver;
 import messages.AddElementMessage;
 import messages.Message;
 
@@ -22,11 +23,11 @@ public class ServerReceiver extends Thread{
 
     private Server server;
     private Object clientMessage;
+    private Receiver state;
 
-//    public ServerReceiver(DatagramChannel datagramChannel, Server server){
-    public ServerReceiver(DatagramSocket datagramSocket, Server server){
+    public ServerReceiver(DatagramSocket datagramSocket, Server server, Receiver state){
         this.socket = datagramSocket;
-//        this.channel = datagramChannel;
+        this.state = state;
         this.server = server;
     }
 
@@ -46,40 +47,6 @@ public class ServerReceiver extends Thread{
                 DatagramPacket packet
                         = new DatagramPacket(bytes, bytes.length);
                 socket.receive(packet);
-//                InetAddress address = packet.getAddress();
-//                int port = packet.getPort();
-//                packet = new DatagramPacket(bytes, bytes.length, address, port);
-//                String received
-//                        = new String(packet.getData(), 0, packet.getLength());
-//                System.out.println(received);
-//                if (received.equals("end")) {
-//                    running = false;
-//                    continue;
-//                }
-//                socket.send(packet);
-
-//                ByteBuffer receiveBuffer = ByteBuffer.allocate(16384);
-
-//                DatagramPacket datagramPacket = new DatagramPacket(bytes, bytes.length);
-//                channel.receive(receiveBuffer);
-//                socket.receive(datagramPacket);
-//                ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(receiveBuffer.array());
-//                ObjectInputStream objectInputStream = new ObjectInputStream();
-//                System.out.println(receiveBuffer);
-
-//                clientMessage = objectInputStream.readObject();
-//                System.out.println("clientMessage:" + clientMessage);
-//                byteArrayInputStream.close();
-//                objectInputStream.close();
-//                if(clientMessage == null) return;
-//                System.out.println("clientMessage:" + clientMessage);
-//                String response = new CommandExecutor((Message) clientMessage).execute();
-//                server.sender.send(response);
-//
-//                ByteBuffer receiveBuffer = ByteBuffer.allocate(16384);
-//                channel.receive(receiveBuffer);
-//                socket.receive(packet);
-//                byte[] bytes = receiveBuffer.array();
                 ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
                 ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
                 clientMessage = objectInputStream.readObject();
@@ -87,10 +54,8 @@ public class ServerReceiver extends Thread{
                 objectInputStream.close();
                 if(clientMessage == null) return;
                 System.out.println("clientMessage:" + clientMessage);
-                String response = new CommandExecutor((Message) clientMessage).execute();
+                String response = new CommandExecutor((Message) clientMessage, state).execute();
                 server.sender.send(response, packet.getAddress(), packet.getPort());
-
-//                String received = extractMessage(receiveBuffer);
             } catch (IOException | ClassNotFoundException e){
                 System.err.println(e.getMessage());
                 run();
