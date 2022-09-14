@@ -43,7 +43,6 @@ public class ServerReceiver extends Thread{
         while (!isInterrupted()){
             try {
                 byte[] bytes = new byte[16384];
-
                 DatagramPacket packet
                         = new DatagramPacket(bytes, bytes.length);
                 socket.receive(packet);
@@ -53,7 +52,6 @@ public class ServerReceiver extends Thread{
                 byteArrayInputStream.close();
                 objectInputStream.close();
                 if(clientMessage == null) return;
-                System.out.println("clientMessage:" + clientMessage);
                 String response = new CommandExecutor((Message) clientMessage, state).execute();
                 server.sender.send(response, packet.getAddress(), packet.getPort());
             } catch (IOException | ClassNotFoundException e){

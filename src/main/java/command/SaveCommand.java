@@ -15,9 +15,7 @@ public class SaveCommand extends Command{
     private static final long serialVersionUID = 14L;
     private final String outputFilepath;
     private final Set<StudyGroup> collection;
-    private final Receiver state;
     public SaveCommand(Receiver state){
-        this.state = state;
         outputFilepath = state.getOutputFilepath();
         collection = state.getCollection();
         this.name = CommandEnum.SAVE;
@@ -33,7 +31,7 @@ public class SaveCommand extends Command{
             br.close();
             os.close();
             boolean isSuccessfullySaved = new File(outputFilepath).exists();
-            if(isSuccessfullySaved) return "Коллекция сохранена в файл";
+            if(isSuccessfullySaved) return "Коллекция сохранена в файл "+ outputFilepath;
             return "Возникла ошибка при выполнении команды save. Проверьте путь и права доступа к файлу";
         } catch (IOException e) {
             return "Возникла ошибка при выполнении команды save. Проверьте путь и права доступа к файлу";

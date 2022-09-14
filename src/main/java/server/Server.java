@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import command.CommandEnum;
 import command.Receiver;
+import command.SaveCommand;
 import util.DataInputSource;
 import util.StudyGroup;
 
@@ -24,14 +25,11 @@ public class Server {
     private final Scanner scan;
     public ServerSender sender;
     private DatagramSocket datagramSocket;
-    private InetSocketAddress clientAddress;
+    private Receiver programState;
 
     public Server(Scanner scan){
         this.scan = scan;
         setPort();
-        System.out.println(PORT);
-        System.out.println(datagramSocket);
-        System.out.println(clientAddress);
     };
     boolean active = true;
 
@@ -41,7 +39,7 @@ public class Server {
      */
 
     public void setPort() {
-        System.out.println("----\nУкажите порт для приёма подключений\n----");
+        System.out.println("Укажите порт для приёма подключений:");
         while (PORT == -1) {
             try {
                 String numb = scan.nextLine();
@@ -50,21 +48,20 @@ public class Server {
                     if (portCandidate < 65535 && portCandidate >= 0) {
                         PORT = portCandidate;
                         datagramSocket = new DatagramSocket(PORT);
-                        clientAddress = new InetSocketAddress("localhost", PORT);
-                        sender = new ServerSender(datagramSocket, clientAddress, PORT);
+                        sender = new ServerSender(datagramSocket);
                     } else {
-                        System.out.println("----\nНедопустимый номер порта, введите снова\n----");
+                        System.out.println("Недопустимый номер порта, попробуйте ещё раз:");
                     }
                 } else {
-                    System.out.println("----\nНедопустимый номер порта, введите снова\n----");
+                    System.out.println("Недопустимый номер порта, попробуйте ещё раз:");
                 }
             } catch (SocketException e){
-                System.err.println("Неизвестный хост\n" + e.getMessage());
+                System.err.println("Ошибка доступа к сокету");
             }
         }
     }
 
-    public void run() throws IOException {
+    public void run() {
         String outputFilepath = System.getenv("lab5_data_filepath");
         Set<StudyGroup> groups = new TreeSet<>();
         Gson gson = new GsonBuilder().setDateFormat("dd.MM.yyyy HH:mm:ss").create();
@@ -95,16 +92,28 @@ public class Server {
             System.err.println(e.getMessage());
             System.exit(1);
         }
-        System.out.println("----\nСтарт работы.\n----");
+        System.out.println("Старт работы");
         this.sender.start();
         List<CommandEnum> history = new ArrayList<>();
         DataInputSource inputSource = new DataInputSource(scan);
-        Receiver programState = new Receiver(groups, outputFilepath, history, true, inputSource, collectionInitializationDate);
+        programState = new Receiver(groups, outputFilepath, history, true, inputSource, collectionInitializationDate);
         ServerReceiver receiver = new ServerReceiver(datagramSocket,this, programState);
         receiver.setDaemon(true);
         receiver.start();
-        while (true){
-
+        while (programState.getWorking() && active){
+            try{
+                String rawCommand = programState.getSource().get();
+                if(rawCommand.isEmpty()) continue;
+                rawCommand = rawCommand.trim();
+                if(rawCommand.matches("save")){
+                    System.out.println(new SaveCommand(programState).execute());
+                } else if (rawCommand.matches("exit")){
+                    System.out.println(new SaveCommand(programState).execute());
+                    System.exit(0);
+                }
+            } catch (IOException e){
+                System.err.println(e.getMessage());
+            }
         }
     }
 
@@ -112,6 +121,7 @@ public class Server {
      * stop method
      */
     public void stop(){
+        System.out.println(new SaveCommand(programState).execute());
         active = false;
     }
 }
