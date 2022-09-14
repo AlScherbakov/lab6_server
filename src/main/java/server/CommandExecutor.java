@@ -94,8 +94,15 @@ public class CommandExecutor {
             case HISTORY: {
                 StringBuilder result = new StringBuilder();
                 List<CommandEnum> historyToShow = new HistoryCommand(state.getHistory()).execute();
+                if(historyToShow.size() > 0){
+                    historyToShow.forEach(entry -> {
+                        result.append(entry.toString());
+                        result.append("\n");
+                    });
+                } else {
+                    result.append("История пуста");
+                }
                 state.pushHistory(CommandEnum.HISTORY);
-                historyToShow.forEach(it -> result.append(it.toString()));
                 return result.toString();
             }
             case MAX_BY_GROUP_ADMIN: {
@@ -121,7 +128,7 @@ public class CommandExecutor {
             }
             case EXECUTE_SCRIPT: {
                 state.pushHistory(CommandEnum.EXECUTE_SCRIPT);
-//            state.pushReader(new ExecuteScriptCommand(scriptPath).execute()); // process on Client
+                return String.format("Выполняется скрипт %s", ((ExecuteScriptMessage) message).getScriptPath());
             }
             case FILTER_LESS_THAN_SEMESTER_ENUM:{
                 state.pushHistory(CommandEnum.FILTER_LESS_THAN_SEMESTER_ENUM);

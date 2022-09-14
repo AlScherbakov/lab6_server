@@ -13,13 +13,7 @@ public class ExecuteScriptMessage extends Message {
         this.name = CommandEnum.EXECUTE_SCRIPT;
         this.scriptPath = scriptPath;
     }
-//    @Override
-//    public BufferedReader execute() {
-//        try {
-//            return new BufferedReader(new FileReader(scriptPath), 16384);
-//        } catch (FileNotFoundException e) {
-//            System.out.println("Ошибка чтения скрипта " + scriptPath);
-//            return null;
-//        }
-//    }
+    public String getScriptPath(){
+        return scriptPath;
+    }
 }
