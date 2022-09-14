@@ -12,15 +12,15 @@ import java.util.TreeSet;
 
 public class MaxGroupByAdminCommand extends Command{
     private static final long serialVersionUID = 9L;
-    Set<StudyGroup> collection;
-    public MaxGroupByAdminCommand(Set<StudyGroup> c){
-        collection = c;
+    private final Set<StudyGroup> collection;
+    public MaxGroupByAdminCommand(Receiver state){
+        collection = state.getCollection();
         this.name = CommandEnum.MAX_BY_GROUP_ADMIN;
     }
-    public StudyGroup execute(){
+    public String execute(){
         TreeSet<StudyGroup> g = new TreeSet<>(Comparator.comparing(StudyGroup::getAdmin));
         g.addAll(collection);
-        return g.last();
+        return g.last().toString();
     }
     public static String describe(){
         return "max_by_group_admin : вывести любой объект из коллекции, значение поля groupAdmin которого является максимальным";

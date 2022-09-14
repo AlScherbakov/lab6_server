@@ -2,13 +2,6 @@ package server;
 
 import command.*;
 import messages.*;
-import util.Semester;
-import util.StudyGroup;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeSet;
 
 public class CommandExecutor {
     private final Message message;
@@ -29,102 +22,51 @@ public class CommandExecutor {
             }
             case INFO: {
                 state.pushHistory(CommandEnum.INFO);
-                return new InfoCommand(state.getCollection(), state.getCollectionInitializationDate()).execute();
+                return new InfoCommand(state).execute();
             }
             case SHOW: {
                 state.pushHistory(CommandEnum.SHOW);
-                return new ShowCommand(state.getCollection()).execute();
+                return new ShowCommand(state).execute();
             }
             case ADD: {
-                try {
-                    StudyGroup newGroup = ((AddElementMessage) message).getElement();
-                    if (newGroup != null) {
-                        state.addToCollection(newGroup);
-                        return "Элемент успешно добавлен в коллекцию";
-                    } else {
-                        throw new RuntimeException("Элемент не был добавлен в коллекцию");
-                    }
-                } catch (RuntimeException e){
-                    System.err.println(e.getMessage());
-                    return e.getMessage();
-                }
-                finally{
-                    state.pushHistory(CommandEnum.ADD);
-                }
+                state.pushHistory(CommandEnum.ADD);
+                return new AddElementCommand(state, (AddElementMessage) message).execute();
             }
             case CLEAR: {
                 state.pushHistory(CommandEnum.CLEAR);
-                state.setCollection(new ClearCommand().execute());
-                return "Коллекция очищена";
+                return new ClearCommand(state).execute();
             }
             case SAVE: {
-                try {
-                    new SaveCommand(state.getOutputFilepath(), state.getCollection()).execute();
-                    System.out.println("Коллекция сохранена в файл");
-                } catch (IOException e) {
-                    System.err.println("Возникла ошибка при выполнении команды save. Проверьте путь и права доступа к файлу");
-                } finally {
-                    state.pushHistory(CommandEnum.SAVE);
-                }
+                state.pushHistory(CommandEnum.SAVE);
+                return  new SaveCommand(state).execute();
             }
             case REMOVE_GREATER: {
-                try {
-                    StudyGroup aGroup = ((RemoveGreaterMessage) message).getElement();
-                    state.setCollection(new RemoveGreaterCommand((TreeSet<StudyGroup>) state.getCollection(), aGroup).execute());
-                    return ("Все элементы, превышающие заданный, удалены из коллекции");
-                } catch (ClassCastException e) {
-                    System.err.println(e.getMessage());
-                    return "Возникла ошибка при выполнении команды remove_greater";
-                } finally {
-                    state.pushHistory(CommandEnum.REMOVE_GREATER);
-                }
+                state.pushHistory(CommandEnum.REMOVE_GREATER);
+                return new RemoveGreaterCommand(state, (RemoveGreaterMessage) message).execute();
             }
             case REMOVE_LOWER: {
-                try {
-                    StudyGroup aGroup = ((RemoveLowerMessage) message).getElement();
-                    state.setCollection(new RemoveLowerCommand((TreeSet<StudyGroup>) state.getCollection(), aGroup).execute());
-                    return "Все элементы, меньшие, чем заданный, удалены из коллекции";
-                } catch (ClassCastException e) {
-                    System.err.println(e.getMessage());
-                    return "Возникла ошибка при выполнении команды remove_lower";
-                } finally {
-                    state.pushHistory(CommandEnum.REMOVE_LOWER);
-                }
+                state.pushHistory(CommandEnum.REMOVE_LOWER);
+                return new RemoveLowerCommand(state, (RemoveLowerMessage) message).execute();
             }
             case HISTORY: {
-                StringBuilder result = new StringBuilder();
-                List<CommandEnum> historyToShow = new HistoryCommand(state.getHistory()).execute();
-                if(historyToShow.size() > 0){
-                    historyToShow.forEach(entry -> {
-                        result.append(entry.toString());
-                        result.append("\n");
-                    });
-                } else {
-                    result.append("История пуста");
-                }
                 state.pushHistory(CommandEnum.HISTORY);
-                return result.toString();
+                return new HistoryCommand(state).execute();
             }
             case MAX_BY_GROUP_ADMIN: {
                 state.pushHistory(CommandEnum.MAX_BY_GROUP_ADMIN);
-                return new MaxGroupByAdminCommand(state.getCollection()).execute().toString(); //ban string exchange
+                return new MaxGroupByAdminCommand(state).execute();
             }
             case PRINT_FIELD_DESCENDING_GROUP_ADMIN: {
                 state.pushHistory(CommandEnum.PRINT_FIELD_DESCENDING_GROUP_ADMIN);
-                return new PrintFieldDescendingGroupAdminCommand(state.getCollection()).execute();  //ban string exchange
+                return new PrintFieldDescendingGroupAdminCommand(state).execute();
             }
             case UPDATE: {
                 state.pushHistory(CommandEnum.UPDATE);
-                int id = ((UpdateElementMessage) message).getId();
-                StudyGroup updatedGroup = ((UpdateElementMessage) message).getElement();
-                state.setCollection(new UpdateElementCommand(id, state.getCollection(), updatedGroup).execute());
-                return String.format("Элемент #%d обновлён (show - список элементов)", id);
+                return new UpdateElementCommand(state, (UpdateElementMessage) message).execute();
             }
             case REMOVE_BY_ID: {
                 state.pushHistory(CommandEnum.REMOVE_BY_ID);
-                int id = ((RemoveByIdMessage) message).getId();
-                state.setCollection(new RemoveByIdCommand(id, state.getCollection()).execute());
-                return String.format("Элемент #%d удалён из коллекции (show - список элементов)", id);
+                return new RemoveByIdCommand(state, (RemoveByIdMessage) message).execute();
             }
             case EXECUTE_SCRIPT: {
                 state.pushHistory(CommandEnum.EXECUTE_SCRIPT);
@@ -132,9 +74,7 @@ public class CommandExecutor {
             }
             case FILTER_LESS_THAN_SEMESTER_ENUM:{
                 state.pushHistory(CommandEnum.FILTER_LESS_THAN_SEMESTER_ENUM);
-                Semester semester = ((FilterLessThanSemesterEnumMessage) message).getSemester();
-                state.setCollection(new FilterLessThanSemesterEnumCommand(semester, state.getCollection()).execute());
-                return "Коллекция отфильтрована (show - список элементов)";
+                return new FilterLessThanSemesterEnumCommand(state, (FilterLessThanSemesterEnumMessage) message).execute();
             }
             default: {
                 return String.format("Команды '%s' не существует (help - список команд) или аргумент команды не задан\n", commandName);

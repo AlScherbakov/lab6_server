@@ -83,6 +83,10 @@ public class Receiver {
         }
     }
 
+    public boolean hasElementWithId(int id){
+        return collection.stream().filter(x -> x.getId() == id).findAny().orElse(null) != null;
+    }
+
     public void addToCollection(StudyGroup e){
         collection.add(e);
     }

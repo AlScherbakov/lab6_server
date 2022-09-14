@@ -11,13 +11,16 @@ import java.util.TreeSet;
 
 public class ClearCommand extends Command{
     private static final long serialVersionUID = 2L;
+    private final Receiver state;
 
-    public ClearCommand(){
+    public ClearCommand(Receiver state){
+        this.state = state;
         this.name = CommandEnum.CLEAR;
     }
 
-    public Set<StudyGroup> execute (){
-        return new TreeSet<>();
+    public String execute (){
+        state.setCollection(new TreeSet<>());
+        return "Коллекция очищена";
     }
 
     public static String describe() {

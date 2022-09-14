@@ -2,6 +2,7 @@ package command;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * History command returns last 6 entries of called commands list
@@ -9,17 +10,19 @@ import java.util.List;
 
 public class HistoryCommand extends Command{
     private static final long serialVersionUID = 7L;
+    private final Receiver state;
     private final List<CommandEnum> history;
-    public HistoryCommand(List<CommandEnum> h){
-        history = h;
+    public HistoryCommand(Receiver state){
+        this.state = state;
+        this.history = state.getHistory();
         this.name = CommandEnum.HISTORY;
     }
-    public List<CommandEnum> execute(){
+    public String execute(){
         int historySize = history.size();
         if (historySize <= 6){
-            return history;
+            return history.stream().map(Enum::toString).collect(Collectors.joining("\n"));
         } else{
-           return new ArrayList<>(history.subList(historySize - 6, historySize));
+           return new ArrayList<>(history.subList(historySize - 6, historySize)).stream().map(Enum::toString).collect(Collectors.joining("\n"));
         }
     }
     public static String describe(){

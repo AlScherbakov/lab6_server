@@ -15,8 +15,8 @@ public class ShowCommand extends Command {
     public final CommandEnum name = CommandEnum.SHOW;
 
     private final Set<StudyGroup> collection;
-    public ShowCommand(Set<StudyGroup> c){
-        collection = c;
+    public ShowCommand(Receiver state){
+        collection = state.getCollection();
     };
 
     public String execute(){

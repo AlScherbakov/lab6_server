@@ -1,5 +1,6 @@
 package command;
 
+import messages.FilterLessThanSemesterEnumMessage;
 import util.Semester;
 import util.StudyGroup;
 
@@ -13,21 +14,25 @@ import java.util.TreeSet;
 
 public class FilterLessThanSemesterEnumCommand extends Command{
     private static final long serialVersionUID = 5L;
-    Semester semester;
-    Set<StudyGroup> collection;
-    public FilterLessThanSemesterEnumCommand(Semester s, Set<StudyGroup> c){
-        semester = s;
-        collection = c;
+    private final Semester semester;
+    private final Set<StudyGroup> collection;
+    private final Receiver state;
+    public FilterLessThanSemesterEnumCommand(Receiver state, FilterLessThanSemesterEnumMessage message){
+        this.state = state;
+        semester = message.getSemester();
+        collection = state.getCollection();
         this.name = CommandEnum.FILTER_LESS_THAN_SEMESTER_ENUM;
     }
-    public Set<StudyGroup> execute(){
+    public String execute(){
         Set<StudyGroup> g = new TreeSet<>(Comparator.comparing(StudyGroup::getSemesterEnum));
         g.addAll(collection);
         g.removeIf((StudyGroup x) -> semester.compareTo(x.getSemesterEnum()) <= 0);
         if (g.size() > 0){
-            return g;
+            state.setCollection(g);
+            return "Коллекция отфильтрована (show - список элементов)";
         } else {
-            return collection;
+            state.setCollection(collection);
+            return "Фильтр применён, но не повлиял на коллекцию";
         }
     }
     public static String describe() {

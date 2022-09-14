@@ -12,10 +12,10 @@ import java.util.TreeSet;
 
 public class PrintFieldDescendingGroupAdminCommand extends Command{
     private static final long serialVersionUID = 10L;
-    Set<StudyGroup> collection;
+    private final Set<StudyGroup> collection;
 
-    public PrintFieldDescendingGroupAdminCommand(Set<StudyGroup> c){
-        collection = c;
+    public PrintFieldDescendingGroupAdminCommand(Receiver state){
+        collection = state.getCollection();
         this.name = CommandEnum.PRINT_FIELD_DESCENDING_GROUP_ADMIN;
     }
 

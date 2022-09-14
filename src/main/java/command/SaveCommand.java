@@ -13,23 +13,31 @@ import java.util.Set;
 
 public class SaveCommand extends Command{
     private static final long serialVersionUID = 14L;
-    String outputFilepath;
-    Set<StudyGroup> collection;
-    public SaveCommand(String path, Set<StudyGroup> c){
-        outputFilepath = path;
-        collection = c;
+    private final String outputFilepath;
+    private final Set<StudyGroup> collection;
+    private final Receiver state;
+    public SaveCommand(Receiver state){
+        this.state = state;
+        outputFilepath = state.getOutputFilepath();
+        collection = state.getCollection();
         this.name = CommandEnum.SAVE;
     }
 
-    public Boolean execute() throws IOException {
-        Gson gson = new GsonBuilder().setDateFormat("dd.MM.yyyy HH:mm:ss").create();
-        File outputFile = new File(outputFilepath);
-        OutputStream os = new FileOutputStream(outputFile);
-        BufferedOutputStream br = new BufferedOutputStream(os, 16384);
-        br.write(gson.toJson(collection).getBytes(StandardCharsets.UTF_8));
-        br.close();
-        os.close();
-        return new File(outputFilepath).exists();
+    public String execute() {
+        try {
+            Gson gson = new GsonBuilder().setDateFormat("dd.MM.yyyy HH:mm:ss").create();
+            File outputFile = new File(outputFilepath);
+            OutputStream os = new FileOutputStream(outputFile);
+            BufferedOutputStream br = new BufferedOutputStream(os, 16384);
+            br.write(gson.toJson(collection).getBytes(StandardCharsets.UTF_8));
+            br.close();
+            os.close();
+            boolean isSuccessfullySaved = new File(outputFilepath).exists();
+            if(isSuccessfullySaved) return "Коллекция сохранена в файл";
+            return "Возникла ошибка при выполнении команды save. Проверьте путь и права доступа к файлу";
+        } catch (IOException e) {
+            return "Возникла ошибка при выполнении команды save. Проверьте путь и права доступа к файлу";
+        }
     }
 
     public static String describe() {

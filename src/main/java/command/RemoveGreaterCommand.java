@@ -1,5 +1,6 @@
 package command;
 
+import messages.RemoveGreaterMessage;
 import util.DataCollector;
 import util.DataInputSource;
 import util.StudyGroup;
@@ -13,19 +14,26 @@ import java.util.TreeSet;
 
 public class RemoveGreaterCommand extends Command{
     private static final long serialVersionUID = 12L;
-    TreeSet<StudyGroup> collection;
-    StudyGroup group;
+    private final TreeSet<StudyGroup> collection;
+    private final StudyGroup group;
+    private final Receiver state;
 
-    public RemoveGreaterCommand(TreeSet<StudyGroup> collection, StudyGroup group){
-        this.collection = collection;
-        this.group = group;
+    public RemoveGreaterCommand(Receiver state, RemoveGreaterMessage message){
+        this.state = state;
+        this.group = message.getElement();
+        this.collection = (TreeSet<StudyGroup>) state.getCollection();
         this.name = CommandEnum.REMOVE_GREATER;
     }
 
-    public Set<StudyGroup> execute(){
-        Set<StudyGroup> groupsToRemove = collection.tailSet(group);
-        collection.removeAll(groupsToRemove);
-        return collection;
+    public String execute(){
+        try {
+            Set<StudyGroup> groupsToRemove = collection.tailSet(group);
+            collection.removeAll(groupsToRemove);
+            state.setCollection(collection);
+            return "Все элементы, превышающие заданный, удалены из коллекции";
+        } catch (ClassCastException e) {
+            return "Возникла ошибка при выполнении команды remove_greater";
+        }
     }
     public static String describe() {
         return "remove_greater {element} : удалить из коллекции все элементы, превышающие заданный";

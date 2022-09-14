@@ -10,11 +10,12 @@ import java.util.Set;
 
 public class InfoCommand extends Command{
     private static final long serialVersionUID = 8L;
-    Set<StudyGroup> collection;
-    String creationDate;
-    public InfoCommand(Set<StudyGroup> t, String d){
-        collection = t;
-        creationDate = d;
+    private final Set<StudyGroup> collection;
+    private final String creationDate;
+
+    public InfoCommand(Receiver state){
+        collection = state.getCollection();
+        creationDate = state.getCollectionInitializationDate();
         this.name = CommandEnum.INFO;
     }
     public String execute(){
