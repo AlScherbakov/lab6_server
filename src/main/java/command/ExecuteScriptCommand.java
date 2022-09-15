@@ -15,15 +15,6 @@ public class ExecuteScriptCommand extends Command{
         scriptPath = p;
         this.name = CommandEnum.EXECUTE_SCRIPT;
     }
-//    @Override
-//    public BufferedReader execute() {
-//        try {
-//            return new BufferedReader(new FileReader(scriptPath), 16384);
-//        } catch (FileNotFoundException e) {
-//            System.out.println("Ошибка чтения скрипта " + scriptPath);
-//            return null;
-//        }
-//    }
     public static String describe() {
         return "execute_script file_name : считать и исполнить скрипт из указанного файла. В скрипте содержатся команды в таком же виде, в котором их вводит пользователь в интерактивном режиме";
     }

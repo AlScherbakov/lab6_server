@@ -9,11 +9,6 @@ public class ExitCommand extends Command{
     public ExitCommand(){
         this.name = CommandEnum.EXIT;
     }
-//    @Override
-//    public Integer execute(){
-//        System.exit(0);
-//        return 0;
-//    }
     public static String describe(){
         return "exit : завершить программу (без сохранения в файл)";
     }

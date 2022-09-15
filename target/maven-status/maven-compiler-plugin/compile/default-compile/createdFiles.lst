@@ -35,10 +35,12 @@ main/Main.class
 util/Color.class
 command/ExecuteScriptCommand.class
 messages/ExecuteScriptMessage.class
+util/LocalDateDeserializer.class
 server/ServerSender.class
 messages/RemoveGreaterMessage.class
 util/Country.class
 messages/ClearMessage.class
+util/LocalDateSerializer.class
 util/FormOfEducation.class
 messages/ExitMessage.class
 util/StudyGroup.class
