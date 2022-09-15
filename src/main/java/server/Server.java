@@ -6,19 +6,21 @@ import command.CommandEnum;
 import command.Receiver;
 import command.SaveCommand;
 import util.DataInputSource;
+import util.LocalDateSerializer;
 import util.StudyGroup;
+import util.LocalDateDeserializer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
+import java.time.LocalDate;
 import java.util.*;
 
 /**
- * Server class from Command pattern. Main process host. May be used for creation of several application instances
+ * Server class from Command pattern. main.Main process host. May be used for creation of several application instances
  */
 public class Server {
     private int PORT = -1;
@@ -64,7 +66,7 @@ public class Server {
     public void run() {
         String outputFilepath = System.getenv("lab5_data_filepath");
         Set<StudyGroup> groups = new TreeSet<>();
-        Gson gson = new GsonBuilder().setDateFormat("dd.MM.yyyy HH:mm:ss").create();
+        Gson gson = new GsonBuilder().setDateFormat("dd.MM.yyyy").registerTypeAdapter(LocalDate.class, new LocalDateDeserializer()).registerTypeAdapter(LocalDate.class, new LocalDateSerializer()).create();
         String collectionInitializationDate = "";
         try {
             if (outputFilepath != null){
@@ -78,12 +80,14 @@ public class Server {
                 } else {
                     FileReader dataFileReader = new FileReader(outputFilepath);
                     StudyGroup[] data = gson.fromJson(dataFileReader, StudyGroup[].class);
-                    StudyGroup[] clearData = Arrays.stream(data).filter(StudyGroup::isValid).toArray(StudyGroup[]::new);
-                    if(data.length != clearData.length){
-                        System.err.println("Некоторые данные некорректны");
+                    if (data != null){
+                        StudyGroup[] clearData = Arrays.stream(data).filter(StudyGroup::isValid).toArray(StudyGroup[]::new);
+                        if(data.length != clearData.length){
+                            System.err.println("Некоторые данные некорректны");
+                        }
+                        Collections.addAll(groups, clearData);
+                        collectionInitializationDate = new Date(new File(outputFilepath).lastModified()).toString();
                     }
-                    Collections.addAll(groups, clearData);
-                    collectionInitializationDate = new Date(new File(outputFilepath).lastModified()).toString();
                 }
             } else {
                 throw new RuntimeException("Переменная окружения 'lab5_data_filepath' не задана");
@@ -121,7 +125,7 @@ public class Server {
      * stop method
      */
     public void stop(){
-        System.out.println(new SaveCommand(programState).execute());
+        if(programState != null) System.out.println(new SaveCommand(programState).execute());
         active = false;
     }
 }

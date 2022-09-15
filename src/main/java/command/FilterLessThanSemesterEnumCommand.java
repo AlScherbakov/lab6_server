@@ -27,11 +27,10 @@ public class FilterLessThanSemesterEnumCommand extends Command{
         Set<StudyGroup> g = new TreeSet<>(Comparator.comparing(StudyGroup::getSemesterEnum));
         g.addAll(collection);
         g.removeIf((StudyGroup x) -> semester.compareTo(x.getSemesterEnum()) <= 0);
-        if (g.size() > 0){
+        if (g.size() != collection.size()){
             state.setCollection(g);
             return "Коллекция отфильтрована (show - список элементов)";
         } else {
-            state.setCollection(collection);
             return "Фильтр применён, но не повлиял на коллекцию";
         }
     }

@@ -1,3 +1,6 @@
+package main;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import server.Server;
 
 import java.util.*;
@@ -8,9 +11,9 @@ public class Main {
         Server server = new Server(scan);
         try {
             server.run();
-        } catch (Exception e){
+        } catch (Exception e) {
             server.stop();
-            System.err.println(e.getMessage());
+            System.err.println(ExceptionUtils.getStackTrace(e));
         }
     }
 }

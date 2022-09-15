@@ -1,10 +1,13 @@
 package command;
 
 import com.google.gson.*;
+import util.LocalDateDeserializer;
+import util.LocalDateSerializer;
 import util.StudyGroup;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.Set;
 
 /**
@@ -23,7 +26,7 @@ public class SaveCommand extends Command{
 
     public String execute() {
         try {
-            Gson gson = new GsonBuilder().setDateFormat("dd.MM.yyyy HH:mm:ss").create();
+            Gson gson = new GsonBuilder().setDateFormat("dd.MM.yyyy").registerTypeAdapter(LocalDate.class, new LocalDateDeserializer()).registerTypeAdapter(LocalDate.class, new LocalDateSerializer()).create();
             File outputFile = new File(outputFilepath);
             OutputStream os = new FileOutputStream(outputFile);
             BufferedOutputStream br = new BufferedOutputStream(os, 16384);
