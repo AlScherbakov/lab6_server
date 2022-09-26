@@ -5,6 +5,7 @@ package command;
  */
 
 public enum CommandEnum {
+    AUTH,
     HELP,
     INFO,
     SHOW,

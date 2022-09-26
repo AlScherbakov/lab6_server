@@ -5,10 +5,8 @@ import com.google.gson.GsonBuilder;
 import command.CommandEnum;
 import command.Receiver;
 import command.SaveCommand;
-import util.DataInputSource;
-import util.LocalDateSerializer;
-import util.StudyGroup;
-import util.LocalDateDeserializer;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import util.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,6 +14,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.*;
 import java.nio.file.AccessDeniedException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -28,17 +29,22 @@ public class Server {
     public ServerSender sender;
     private DatagramSocket datagramSocket;
     private Receiver programState;
+    private Connection connection;
 
     public Server(Scanner scan){
         this.scan = scan;
         setPort();
+        setDBConnection();
     };
     boolean active = true;
 
-    /**
-     * run method
-     * @throws IOException
-     */
+    private void setDBConnection() {
+        try {
+            this.connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/alexandr", "postgres", "");
+        } catch (SQLException e){
+            System.err.println("Ошибка при подключении к БД");
+        }
+    }
 
     public void setPort() {
         System.out.println("Укажите порт для приёма подключений:");
@@ -62,7 +68,9 @@ public class Server {
             }
         }
     }
-
+    /**
+     * run method
+     */
     public void run() {
         String outputFilepath = System.getenv("lab5_data_filepath");
         Set<StudyGroup> groups = new TreeSet<>();
@@ -100,7 +108,7 @@ public class Server {
         this.sender.start();
         List<CommandEnum> history = new ArrayList<>();
         DataInputSource inputSource = new DataInputSource(scan);
-        programState = new Receiver(groups, outputFilepath, history, true, inputSource, collectionInitializationDate);
+        programState = new Receiver(groups, outputFilepath, history, true, inputSource, collectionInitializationDate, connection);
         ServerReceiver receiver = new ServerReceiver(datagramSocket,this, programState);
         receiver.setDaemon(true);
         receiver.start();

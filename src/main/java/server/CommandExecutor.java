@@ -16,6 +16,9 @@ public class CommandExecutor {
         CommandEnum commandName = message.getCommandName();
         System.out.println(commandName);
         switch (commandName){
+            case AUTH: {
+                return new AuthCommand(state, (AuthMessage) message).execute();
+            }
             case HELP: {
                 state.pushHistory(CommandEnum.HELP);
                 return new HelpCommand().execute();
