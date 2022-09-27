@@ -5,7 +5,6 @@ import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import util.*;
 
-import javax.security.auth.kerberos.EncryptionKey;
 import java.io.BufferedReader;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -29,14 +28,12 @@ public class Receiver {
     private final Gson gson = new GsonBuilder().setDateFormat("dd.MM.yyyy").registerTypeAdapter(LocalDate.class, new LocalDateDeserializer()).registerTypeAdapter(LocalDate.class, new LocalDateSerializer()).create();
     public String collectionInitializationDate;
     private Set<StudyGroup> collection;
-    private String outputFilepath;
     private List<CommandEnum> history;
     private boolean working;
     private DataInputSource source;
 
-    public Receiver(Set<StudyGroup> c, String o, List<CommandEnum> h, boolean w, DataInputSource s, String cid, Connection conn) {
+    public Receiver(Set<StudyGroup> c, List<CommandEnum> h, boolean w, DataInputSource s, String cid, Connection conn) {
         collection = c;
-        outputFilepath = o;
         history = h;
         working = w;
         source = s;
@@ -50,14 +47,6 @@ public class Receiver {
 
     public void setCollection(Set<StudyGroup> c) {
         collection = c;
-    }
-
-    public String getOutputFilepath() {
-        return outputFilepath;
-    }
-
-    public void setOutputFilepath(String o) {
-        outputFilepath = o;
     }
 
     public List<CommandEnum> getHistory() {
@@ -120,24 +109,55 @@ public class Receiver {
     public void addToCollection(StudyGroup e) {
         collection.add(e);
     }
-//
-//    public void addGroupToDB(StudyGroup group, User author) {
-//        try {
-//            PreparedStatement addStatement = connection.prepareStatement("INSERT INTO groups VALUES (nextval('groups_ids'), ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-//            addStatement.setString(1, group.getName());
-//            addStatement.setString(2, gson.toJson(group.getCoordinates()));
-//            addStatement.setString(3, gson.toJson(group.getCreationDate()));
-//            addStatement.setInt(4, group.getStudentsCount());
-//            addStatement.setLong(5, group.getTransferredStudents());
-//            addStatement.setString(6, gson.toJson(group.getFormOfEducation()));
-//            addStatement.setString(7, gson.toJson(group.getSemesterEnum()));
-//            addStatement.setString(8, gson.toJson(group.getAdmin()));
-//            addStatement.setLong(9, author.getId());
-//            addStatement.executeUpdate();
-//        } catch (SQLException e) {
-//            System.err.println("Ошибка при сохранении коллекции в файл");
-//        }
-//    }
+
+    public int removeGroupFromDB(long id) throws SQLException {
+        int rowsChangedCount = 0;
+        PreparedStatement removeStatement = connection.prepareStatement("DELETE FROM groups WHERE id=?");
+        removeStatement.setLong(1, id);
+        rowsChangedCount = removeStatement.executeUpdate();
+        return rowsChangedCount;
+    }
+
+    public int addGroupToDB(StudyGroup group, long authorId) {
+        int id = -1;
+        try {
+            PreparedStatement addStatement = connection.prepareStatement("INSERT INTO groups VALUES (nextval('groups_ids'), ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNS id");
+            addStatement.setString(1, group.getName());
+            addStatement.setString(2, gson.toJson(group.getCoordinates()));
+            addStatement.setString(3, gson.toJson(group.getCreationDate()));
+            addStatement.setInt(4, group.getStudentsCount());
+            addStatement.setLong(5, group.getTransferredStudents());
+            addStatement.setString(6, gson.toJson(group.getFormOfEducation()));
+            addStatement.setString(7, gson.toJson(group.getSemesterEnum()));
+            addStatement.setString(8, gson.toJson(group.getAdmin()));
+            addStatement.setLong(9, authorId);
+            id = addStatement.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Ошибка при добавлении элемента в базу данных");
+        }
+        return id;
+    }
+
+    public int updateElementInDB(StudyGroup group) {
+        int rowsChangedCount = 0;
+        try {
+            PreparedStatement updateStatement = connection.prepareStatement("UPDATE groups SET name=?, coordinates=?, creationDate=?, studentsCount=?, transferredStudents=?, formOfEducation=?, semesterEnum=?, groupAdmin=?, author=? WHERE id=?");
+            updateStatement.setString(1, group.getName());
+            updateStatement.setString(2, gson.toJson(group.getCoordinates()));
+            updateStatement.setString(3, gson.toJson(group.getCreationDate()));
+            updateStatement.setInt(4, group.getStudentsCount());
+            updateStatement.setLong(5, group.getTransferredStudents());
+            updateStatement.setString(6, gson.toJson(group.getFormOfEducation()));
+            updateStatement.setString(7, gson.toJson(group.getSemesterEnum()));
+            updateStatement.setString(8, gson.toJson(group.getAdmin()));
+            updateStatement.setLong(9, group.getAuthor());
+            updateStatement.setLong(10, group.getId());
+            rowsChangedCount = updateStatement.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Ошибка при обновлении элемента в базе данных");
+        }
+        return rowsChangedCount;
+    }
 
     public void updateCollectionFromDB() {
         try {
@@ -146,7 +166,7 @@ public class Receiver {
             while (rows.next()) {
                 StudyGroup groupCandidate = new StudyGroup(rows.getInt("id"), gson.fromJson(rows.getString("creationDate"), LocalDate.class), rows.getString("name"), gson.fromJson(rows.getString("coordinates"), Coordinates.class),
                         rows.getInt("studentsCount"), rows.getLong("transferredStudents"), gson.fromJson(rows.getString("formOfEducation"), FormOfEducation.class),
-                        gson.fromJson(rows.getString("semesterEnum"), Semester.class), gson.fromJson(rows.getString("admin"), Person.class));
+                        gson.fromJson(rows.getString("semesterEnum"), Semester.class), gson.fromJson(rows.getString("groupAdmin"), Person.class), rows.getLong("author"));
                 if (groupCandidate.isValid()) {
                     collectionCandidate.add(groupCandidate);
                 }
@@ -154,6 +174,7 @@ public class Receiver {
             setCollection(collectionCandidate);
         } catch (SQLException e) {
             System.err.println("Ошибка при получении коллекции из базы данных");
+            System.err.println(ExceptionUtils.getStackTrace(e));
         }
     }
 
@@ -167,7 +188,7 @@ public class Receiver {
             PreparedStatement authStatement = connection.prepareStatement("SELECT id , password FROM users WHERE username = ?"); //AND password = sha224(?) ON CONFLICT (password) RETURN -1 OR (username) INSERT INTO users VALUES (nextval('users_ids'), ?, sha224(?)) RETURN currval('users_ids')");
             authStatement.setString(1, username);
             ResultSet authRes = authStatement.executeQuery();
-            if(authRes.next()){
+            if (authRes.next()) {
                 long idCandidate = authRes.getLong("id");
                 String passwd = authRes.getString("password");
                 MessageDigest md = MessageDigest.getInstance("SHA-224");
@@ -178,7 +199,7 @@ public class Receiver {
                     encryptedPassword.insert(0, "0");
                 }
                 encryptedPassword.insert(0, "\\x");
-                if(passwd.equals(encryptedPassword.toString())){
+                if (passwd.equals(encryptedPassword.toString())) {
                     id = idCandidate;
                 }
             } else {

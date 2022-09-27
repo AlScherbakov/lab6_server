@@ -38,7 +38,7 @@ public class DataCollector {
         }
     };
 
-    public StudyGroup requestStudyGroup(){
+    public StudyGroup requestStudyGroup(long authorId){
         try{
             String name = collectName();
             Coordinates coordinates = collectCoordinates();
@@ -48,7 +48,7 @@ public class DataCollector {
             Semester semesterEnum = collectSemesterEnum();
             System.out.println("Админ группы");
             Person groupAdmin = requestPerson();
-            return new StudyGroup(name, coordinates, studentsCount, transferredStudents, formOfEducation, semesterEnum, groupAdmin);
+            return new StudyGroup(name, coordinates, studentsCount, transferredStudents, formOfEducation, semesterEnum, groupAdmin, authorId);
         } catch (RunOffCommandException e){
             return null;
         } catch (IOException e){

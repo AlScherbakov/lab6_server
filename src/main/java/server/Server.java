@@ -5,14 +5,17 @@ import com.google.gson.GsonBuilder;
 import command.CommandEnum;
 import command.Receiver;
 import command.SaveCommand;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import util.*;
+import util.DataInputSource;
+import util.LocalDateDeserializer;
+import util.LocalDateSerializer;
+import util.StudyGroup;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.*;
+import java.net.DatagramSocket;
+import java.net.SocketException;
 import java.nio.file.AccessDeniedException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -24,24 +27,24 @@ import java.util.*;
  * Server class from Command pattern. main.Main process host. May be used for creation of several application instances
  */
 public class Server {
-    private int PORT = -1;
     private final Scanner scan;
     public ServerSender sender;
+    boolean active = true;
+    private int PORT = -1;
     private DatagramSocket datagramSocket;
     private Receiver programState;
     private Connection connection;
 
-    public Server(Scanner scan){
+    public Server(Scanner scan) {
         this.scan = scan;
         setPort();
         setDBConnection();
-    };
-    boolean active = true;
+    }
 
     private void setDBConnection() {
         try {
             this.connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/alexandr", "postgres", "");
-        } catch (SQLException e){
+        } catch (SQLException e) {
             System.err.println("Ошибка при подключении к БД");
         }
     }
@@ -63,67 +66,39 @@ public class Server {
                 } else {
                     System.out.println("Недопустимый номер порта, попробуйте ещё раз:");
                 }
-            } catch (SocketException e){
+            } catch (SocketException e) {
                 System.err.println("Ошибка доступа к сокету");
             }
         }
     }
+
     /**
      * run method
      */
-    public void run() {
-        String outputFilepath = System.getenv("lab5_data_filepath");
+    public void run() throws SQLException {
         Set<StudyGroup> groups = new TreeSet<>();
-        Gson gson = new GsonBuilder().setDateFormat("dd.MM.yyyy").registerTypeAdapter(LocalDate.class, new LocalDateDeserializer()).registerTypeAdapter(LocalDate.class, new LocalDateSerializer()).create();
-        String collectionInitializationDate = "";
-        try {
-            if (outputFilepath != null){
-                File outputFile = new File(outputFilepath);
-                if (!outputFile.exists()){
-                    throw new FileNotFoundException("Файл " + outputFilepath + " не найден. Проверьте переменную окружения 'lab5_data_filepath'");
-                } else if (!outputFile.canWrite()){
-                    throw new AccessDeniedException("Нет права на запись в файл " + outputFilepath);
-                } else if (!outputFile.canRead()){
-                    throw new AccessDeniedException("Нет права чтение файла " + outputFilepath);
-                } else {
-                    FileReader dataFileReader = new FileReader(outputFilepath);
-                    StudyGroup[] data = gson.fromJson(dataFileReader, StudyGroup[].class);
-                    if (data != null){
-                        StudyGroup[] clearData = Arrays.stream(data).filter(StudyGroup::isValid).toArray(StudyGroup[]::new);
-                        if(data.length != clearData.length){
-                            System.err.println("Некоторые данные некорректны");
-                        }
-                        Collections.addAll(groups, clearData);
-                        collectionInitializationDate = new Date(new File(outputFilepath).lastModified()).toString();
-                    }
-                }
-            } else {
-                throw new RuntimeException("Переменная окружения 'lab5_data_filepath' не задана");
-            }
-        } catch (FileNotFoundException | AccessDeniedException e) {
-            System.err.println(e.getMessage());
-            System.exit(1);
-        }
+        String collectionInitializationDate = "";//connection.createStatement().execute("SELECT creationDate FROM groups ORDER BY date(creationDate) DESC LIMIT 1");
         System.out.println("Старт работы");
         this.sender.start();
         List<CommandEnum> history = new ArrayList<>();
         DataInputSource inputSource = new DataInputSource(scan);
-        programState = new Receiver(groups, outputFilepath, history, true, inputSource, collectionInitializationDate, connection);
-        ServerReceiver receiver = new ServerReceiver(datagramSocket,this, programState);
+        programState = new Receiver(groups, history, true, inputSource, collectionInitializationDate, connection);
+        programState.updateCollectionFromDB();
+        ServerReceiver receiver = new ServerReceiver(datagramSocket, this, programState);
         receiver.setDaemon(true);
         receiver.start();
-        while (programState.getWorking() && active){
-            try{
+        while (programState.getWorking() && active) {
+            try {
                 String rawCommand = programState.getSource().get();
-                if(rawCommand.isEmpty()) continue;
+                if (rawCommand.isEmpty()) continue;
                 rawCommand = rawCommand.trim();
-                if(rawCommand.matches("save")){
+                if (rawCommand.matches("save")) {
                     System.out.println(new SaveCommand(programState).execute());
-                } else if (rawCommand.matches("exit")){
+                } else if (rawCommand.matches("exit")) {
                     System.out.println(new SaveCommand(programState).execute());
                     System.exit(0);
                 }
-            } catch (IOException e){
+            } catch (IOException e) {
                 System.err.println(e.getMessage());
             }
         }
@@ -132,8 +107,8 @@ public class Server {
     /**
      * stop method
      */
-    public void stop(){
-        if(programState != null) System.out.println(new SaveCommand(programState).execute());
+    public void stop() {
+        if (programState != null) System.out.println(new SaveCommand(programState).execute());
         active = false;
     }
 }

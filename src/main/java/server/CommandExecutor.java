@@ -13,6 +13,7 @@ public class CommandExecutor {
     }
 
     public String execute(){
+        System.out.println(message.getUser());
         CommandEnum commandName = message.getCommandName();
         System.out.println(commandName);
         switch (commandName){
@@ -37,7 +38,7 @@ public class CommandExecutor {
             }
             case CLEAR: {
                 state.pushHistory(CommandEnum.CLEAR);
-                return new ClearCommand(state).execute();
+                return new ClearCommand(state, (ClearMessage) message).execute();
             }
             case SAVE: {
                 state.pushHistory(CommandEnum.SAVE);

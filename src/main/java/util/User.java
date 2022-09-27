@@ -43,6 +43,6 @@ public class User implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("Пользователь %s, пароль - %s", username, password);
+        return String.format("Пользователь #%s, %s, пароль - %s", id, username, password);
     }
 }

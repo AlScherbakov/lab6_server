@@ -1,6 +1,7 @@
 package messages;
 
 import command.CommandEnum;
+import util.User;
 
 import java.io.Serializable;
 
@@ -10,7 +11,17 @@ import java.io.Serializable;
 
 public abstract class Message implements Serializable {
     protected CommandEnum name;
-    public CommandEnum getCommandName(){
+    protected User user;
+
+    public CommandEnum getCommandName() {
         return name;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }
