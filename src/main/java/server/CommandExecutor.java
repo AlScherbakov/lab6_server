@@ -13,9 +13,8 @@ public class CommandExecutor {
     }
 
     public String execute(){
-        System.out.println(message.getUser());
         CommandEnum commandName = message.getCommandName();
-        System.out.println(commandName);
+        System.out.printf("%s - %s\n", commandName, message.getUser());
         switch (commandName){
             case AUTH: {
                 return new AuthCommand(state, (AuthMessage) message).execute();

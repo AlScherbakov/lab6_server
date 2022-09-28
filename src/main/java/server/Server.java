@@ -1,28 +1,19 @@
 package server;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import command.CommandEnum;
 import command.Receiver;
 import command.SaveCommand;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import util.DataInputSource;
-import util.LocalDateDeserializer;
-import util.LocalDateSerializer;
 import util.StudyGroup;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.SocketException;
-import java.nio.file.AccessDeniedException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.*;
 
 /**
@@ -44,8 +35,25 @@ public class Server {
 
     private void setDBConnection() {
         try {
-            this.connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/alexandr", "postgres", "");
+            String pgUrl = System.getenv().get("postgres_connection_url");
+            String pgUser = System.getenv().get("postgres_user");
+            String pgPassword = System.getenv().get("postgres_password");
+            if (pgUrl == null) {
+                System.err.println("Установите переменную окружения postgres_connection_url - URL для подключения к БД Postgres");
+                System.exit(1);
+            } else if (pgUser == null) {
+                System.err.println("Установите переменную окружения postgres_user - Имя пользователя для подключения к БД Postgres");
+                System.exit(1);
+            } else if (pgPassword == null) {
+                System.err.println("Установите переменную окружения postgres_password - Пароль пользователя для подключения к БД Postgres");
+                System.exit(1);
+            } else {
+                this.connection = DriverManager.getConnection(pgUrl, pgUser, pgPassword);
+                connection.createStatement().executeUpdate("CREATE TABLE IF NOT EXISTS users (id bigint PRIMARY KEY, username text, password text); CREATE SEQUENCE IF NOT EXISTS users_ids");
+                connection.createStatement().executeUpdate("CREATE TABLE IF NOT EXISTS groups (id bigint PRIMARY KEY, name text, coordinates text, creationDate text, studentsCount int, transferredStudents bigint, formOfEducation text, semesterEnum text, groupAdmin text, author bigint); CREATE SEQUENCE IF NOT EXISTS groups_ids");
+            }
         } catch (SQLException e) {
+            System.err.println(ExceptionUtils.getStackTrace(e));
             System.err.println("Ошибка при подключении к БД");
         }
     }
@@ -72,11 +80,11 @@ public class Server {
         }
     }
 
-    private String getInitializationDate (){
+    private String getInitializationDate() {
         String initializationDate = "-";
-        try{
+        try {
             ResultSet res = connection.createStatement().executeQuery("SELECT creationDate FROM groups ORDER BY id LIMIT 1");
-            if(res.next()){
+            if (res.next()) {
                 initializationDate = res.getString(1);
             }
         } catch (SQLException e) {
