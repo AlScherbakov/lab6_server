@@ -47,7 +47,6 @@ public class FilterLessThanSemesterEnumCommand extends Command {
             groupsToRemove.add(x);
         });
         collection.removeAll(groupsToRemove);
-        //
         if (g.size() != collection.size()) {
             state.setCollection(collection);
             return "Коллекция отфильтрована (show - список элементов)";

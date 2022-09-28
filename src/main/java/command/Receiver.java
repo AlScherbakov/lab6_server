@@ -16,6 +16,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Receiver class - Command pattern element - stores program state
@@ -23,6 +24,7 @@ import java.util.*;
 
 public class Receiver {
     private final long serialVersionUID = 1L;
+    private final ReentrantLock lock = new ReentrantLock();
     private final Deque<BufferedReader> readers = new ArrayDeque<>();
     private final Connection connection;
     private final Gson gson = new GsonBuilder().setDateFormat("dd.MM.yyyy").registerTypeAdapter(LocalDate.class, new LocalDateDeserializer()).registerTypeAdapter(LocalDate.class, new LocalDateSerializer()).create();
@@ -111,17 +113,23 @@ public class Receiver {
     }
 
     public int removeGroupFromDB(long id) throws SQLException {
-        int rowsChangedCount = 0;
-        PreparedStatement removeStatement = connection.prepareStatement("DELETE FROM groups WHERE id=?");
-        removeStatement.setLong(1, id);
-        rowsChangedCount = removeStatement.executeUpdate();
-        return rowsChangedCount;
+        try {
+            lock.lock();
+            int rowsChangedCount = 0;
+            PreparedStatement removeStatement = connection.prepareStatement("DELETE FROM groups WHERE id=?");
+            removeStatement.setLong(1, id);
+            rowsChangedCount = removeStatement.executeUpdate();
+            return rowsChangedCount;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public int addGroupToDB(StudyGroup group, long authorId) {
         int id = -1;
         try {
-            PreparedStatement addStatement = connection.prepareStatement("INSERT INTO groups VALUES (nextval('groups_ids'), ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNS id");
+            lock.lock();
+            PreparedStatement addStatement = connection.prepareStatement("INSERT INTO groups VALUES (nextval('groups_ids'), ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id");
             addStatement.setString(1, group.getName());
             addStatement.setString(2, gson.toJson(group.getCoordinates()));
             addStatement.setString(3, gson.toJson(group.getCreationDate()));
@@ -131,9 +139,14 @@ public class Receiver {
             addStatement.setString(7, gson.toJson(group.getSemesterEnum()));
             addStatement.setString(8, gson.toJson(group.getAdmin()));
             addStatement.setLong(9, authorId);
-            id = addStatement.executeUpdate();
+            ResultSet addRes = addStatement.executeQuery();
+            if(addRes.next()){
+                id = addRes.getInt("id");
+            }
         } catch (SQLException e) {
             System.err.println("Ошибка при добавлении элемента в базу данных");
+        } finally {
+            lock.unlock();
         }
         return id;
     }
@@ -141,6 +154,7 @@ public class Receiver {
     public int updateElementInDB(StudyGroup group) {
         int rowsChangedCount = 0;
         try {
+            lock.lock();
             PreparedStatement updateStatement = connection.prepareStatement("UPDATE groups SET name=?, coordinates=?, creationDate=?, studentsCount=?, transferredStudents=?, formOfEducation=?, semesterEnum=?, groupAdmin=?, author=? WHERE id=?");
             updateStatement.setString(1, group.getName());
             updateStatement.setString(2, gson.toJson(group.getCoordinates()));
@@ -155,12 +169,15 @@ public class Receiver {
             rowsChangedCount = updateStatement.executeUpdate();
         } catch (SQLException e) {
             System.err.println("Ошибка при обновлении элемента в базе данных");
+        } finally {
+            lock.unlock();
         }
         return rowsChangedCount;
     }
 
     public void updateCollectionFromDB() {
         try {
+            lock.lock();
             TreeSet<StudyGroup> collectionCandidate = new TreeSet<>();
             ResultSet rows = connection.createStatement().executeQuery("SELECT * FROM groups");
             while (rows.next()) {
@@ -175,12 +192,16 @@ public class Receiver {
         } catch (SQLException e) {
             System.err.println("Ошибка при получении коллекции из базы данных");
             System.err.println(ExceptionUtils.getStackTrace(e));
+        } finally {
+            lock.unlock();
         }
     }
 
     public long authenticateUser(String username, String password) {
         long id = -1;
         try {
+            lock.lock();
+
             PreparedStatement registerStatement = connection.prepareStatement("INSERT INTO users VALUES (nextval('users_ids'), ?, sha224(?)) RETURNING id");
             registerStatement.setString(1, username);
             registerStatement.setBytes(2, password.getBytes(StandardCharsets.UTF_8));
@@ -210,6 +231,8 @@ public class Receiver {
             }
         } catch (SQLException | NoSuchAlgorithmException e) {
             System.err.println("Ошибка авторизации");
+        } finally {
+            lock.unlock();
         }
         return id;
     }
