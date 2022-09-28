@@ -13,6 +13,7 @@ command/HelpCommand.class
 messages/Message.class
 messages/SaveMessage.class
 command/Command.class
+command/AuthCommand.class
 util/DataInputModeEnum.class
 command/MaxGroupByAdminCommand.class
 messages/PrintFieldDescendingGroupAdminMessage.class
@@ -43,6 +44,7 @@ messages/ClearMessage.class
 util/LocalDateSerializer.class
 util/FormOfEducation.class
 messages/ExitMessage.class
+messages/AuthMessage.class
 util/StudyGroup.class
 server/ServerReceiver.class
 messages/FilterLessThanSemesterEnumMessage.class
@@ -50,6 +52,7 @@ util/DataCollector.class
 messages/AddElementMessage.class
 command/CommandEnum.class
 messages/HelpMessage.class
+util/User.class
 command/RemoveLowerCommand.class
 util/Coordinates.class
 command/AddElementCommand.class

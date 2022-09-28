@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import command.CommandEnum;
 import command.Receiver;
 import command.SaveCommand;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import util.DataInputSource;
 import util.LocalDateDeserializer;
 import util.LocalDateSerializer;
@@ -19,6 +20,7 @@ import java.net.SocketException;
 import java.nio.file.AccessDeniedException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
@@ -70,12 +72,26 @@ public class Server {
         }
     }
 
+    private String getInitializationDate (){
+        String initializationDate = "-";
+        try{
+            ResultSet res = connection.createStatement().executeQuery("SELECT creationDate FROM groups ORDER BY id LIMIT 1");
+            if(res.next()){
+                initializationDate = res.getString(1);
+            }
+        } catch (SQLException e) {
+            System.err.println(ExceptionUtils.getStackTrace(e));
+            System.err.println("Ошибка при получении даты инициализации коллекции");
+        }
+        return initializationDate;
+    }
+
     /**
      * run method
      */
-    public void run() throws SQLException {
+    public void run() {
         Set<StudyGroup> groups = new TreeSet<>();
-        String collectionInitializationDate = "";//connection.createStatement().execute("SELECT creationDate FROM groups ORDER BY date(creationDate) DESC LIMIT 1");
+        String collectionInitializationDate = getInitializationDate();
         System.out.println("Старт работы");
         List<CommandEnum> history = new ArrayList<>();
         DataInputSource inputSource = new DataInputSource(scan);
