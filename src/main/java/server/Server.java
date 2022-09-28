@@ -28,7 +28,6 @@ import java.util.*;
  */
 public class Server {
     private final Scanner scan;
-    public ServerSender sender;
     boolean active = true;
     private int PORT = -1;
     private DatagramSocket datagramSocket;
@@ -59,7 +58,6 @@ public class Server {
                     if (portCandidate < 65535 && portCandidate >= 0) {
                         PORT = portCandidate;
                         datagramSocket = new DatagramSocket(PORT);
-                        sender = new ServerSender(datagramSocket);
                     } else {
                         System.out.println("Недопустимый номер порта, попробуйте ещё раз:");
                     }
@@ -79,12 +77,11 @@ public class Server {
         Set<StudyGroup> groups = new TreeSet<>();
         String collectionInitializationDate = "";//connection.createStatement().execute("SELECT creationDate FROM groups ORDER BY date(creationDate) DESC LIMIT 1");
         System.out.println("Старт работы");
-        this.sender.start();
         List<CommandEnum> history = new ArrayList<>();
         DataInputSource inputSource = new DataInputSource(scan);
         programState = new Receiver(groups, history, true, inputSource, collectionInitializationDate, connection);
         programState.updateCollectionFromDB();
-        ServerReceiver receiver = new ServerReceiver(datagramSocket, this, programState);
+        ServerReceiver receiver = new ServerReceiver(datagramSocket, this, programState, 20);
         receiver.setDaemon(true);
         receiver.start();
         while (programState.getWorking() && active) {
