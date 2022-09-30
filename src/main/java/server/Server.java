@@ -48,11 +48,12 @@ public class Server {
                 System.err.println("Установите переменную окружения postgres_password - Пароль пользователя для подключения к БД Postgres");
                 System.exit(1);
             } else {
+                Class.forName("org.postgresql.Driver");
                 this.connection = DriverManager.getConnection(pgUrl, pgUser, pgPassword);
                 connection.createStatement().executeUpdate("CREATE TABLE IF NOT EXISTS users (id bigint PRIMARY KEY, username text, password text); CREATE SEQUENCE IF NOT EXISTS users_ids");
                 connection.createStatement().executeUpdate("CREATE TABLE IF NOT EXISTS groups (id bigint PRIMARY KEY, name text, coordinates text, creationDate text, studentsCount int, transferredStudents bigint, formOfEducation text, semesterEnum text, groupAdmin text, author bigint); CREATE SEQUENCE IF NOT EXISTS groups_ids");
             }
-        } catch (SQLException e) {
+        } catch (SQLException | ClassNotFoundException e) {
             System.err.println(ExceptionUtils.getStackTrace(e));
             System.err.println("Ошибка при подключении к БД");
         }
